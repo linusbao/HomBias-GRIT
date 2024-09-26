@@ -1,8 +1,5 @@
 cfgs=(
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/OG-test.yaml"
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/OG-test.yaml"
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/OG-test.yaml"
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/OG-test.yaml"
+"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/testing/OG-test.yaml"
 )
 
 for c in "${cfgs[@]}"; do
