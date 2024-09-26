@@ -26,6 +26,13 @@ from grit.transform.transforms import (pre_transform_in_memory,
                                        typecast_x, concat_x_and_pos,
                                        clip_graphs_to_size)
 
+#For ZINC Homcounts
+from pathlib import Path
+import sys
+import os
+sys.path.append(os.path.join(Path(__file__).parent.parent.parent.parent, 'hombasis-gt','hombasis-bench'))
+from data import get_data
+
 
 def log_loaded_dataset(dataset, format, name):
     logging.info(f"[*] Loaded dataset '{name}' from '{format}':")
@@ -127,8 +134,15 @@ def load_dataset_master(format, name, dataset_dir):
                 raise NotImplementedError(f"crocodile not implemented yet")
             dataset = WikipediaNetwork(dataset_dir, name)
 
+        # elif pyg_dataset_id == 'ZINC':
+        #     dataset = preformat_ZINC(dataset_dir, name)
         elif pyg_dataset_id == 'ZINC':
             dataset = preformat_ZINC(dataset_dir, name)
+            print('BOOOOOO')
+        elif pyg_dataset_id.startswith('ZINC-'):
+            postfix = pyg_dataset_id.split('-', 1)[1]
+            dataset = preformat_ZINC(dataset_dir, name, postfix)
+            print('YAAAAAAAYYYY')
             
         elif pyg_dataset_id == 'AQSOL':
             dataset = preformat_AQSOL(dataset_dir, name)
@@ -634,7 +648,25 @@ def preformat_TUDataset(dataset_dir, name):
     return dataset
 
 
-def preformat_ZINC(dataset_dir, name):
+# def preformat_ZINC(dataset_dir, name):
+#     """Load and preformat ZINC datasets.
+
+#     Args:
+#         dataset_dir: path where to store the cached dataset
+#         name: select 'subset' or 'full' version of ZINC
+
+#     Returns:
+#         PyG dataset object
+#     """
+#     if name not in ['subset', 'full']:
+#         raise ValueError(f"Unexpected subset choice for ZINC dataset: {name}")
+#     dataset = join_dataset_splits(
+#         [ZINC(root=dataset_dir, subset=(name == 'subset'), split=split)
+#          for split in ['train', 'val', 'test']]
+#     )
+#     return dataset
+
+def preformat_ZINC(dataset_dir, name, postfix=None):
     """Load and preformat ZINC datasets.
 
     Args:
@@ -644,12 +676,68 @@ def preformat_ZINC(dataset_dir, name):
     Returns:
         PyG dataset object
     """
+    data_dir = os.path.join(Path(__file__).parent.parent.parent.parent, 'hombasis-gt','hombasis-bench', 'data', 'zinc-data')
+    dataset = None
     if name not in ['subset', 'full']:
         raise ValueError(f"Unexpected subset choice for ZINC dataset: {name}")
     dataset = join_dataset_splits(
         [ZINC(root=dataset_dir, subset=(name == 'subset'), split=split)
-         for split in ['train', 'val', 'test']]
+        for split in ['train', 'val', 'test']]
     )
+    if postfix != None and "Spasm" in postfix and "WLtree_full" in postfix and name == 'subset':
+        count_files = ['zinc_with_homs_c7.json', 'zinc_with_homs_c8.json']
+        idx_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 , 11, 15, 20, 21, 22, 24, 25, 27, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]
+        sub_file = 'zinc_3to8C_multhom.json'
+        dataset = get_data.add_zinc_subhom(name='ZINC', hom_files=count_files, idx_list=idx_list, sub_file=sub_file, root=data_dir, dataset=dataset, spasm_count_label=True)
+        count_file = 'with_homs_wlfull.json'
+        idx_list = [] #assuming I don't need to omit any of the counts included in Mattihas' file
+        dataset = get_data.add_zinc_hom(name='ZINC', hom_files=count_file, idx_list=idx_list, root=data_dir, dataset=dataset, wl_count_label=True, preserve_counts_spasm=True)
+
+    elif postfix != None and "Spasm" in postfix and "2WLtree" in postfix and name == 'subset': #FLAG2
+        count_files = ['zinc_with_homs_c7.json', 'zinc_with_homs_c8.json']
+        idx_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 , 11, 15, 20, 21, 22, 24, 25, 27, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]
+        sub_file = 'zinc_3to8C_multhom.json'
+        dataset = get_data.add_zinc_subhom(name='ZINC', hom_files=count_files, idx_list=idx_list, sub_file=sub_file, root=data_dir, dataset=dataset, spasm_count_label=True)
+        count_file = 'with_homs_wlfull.json'
+        idx_list = [0,1,2,4,7] #for simulating 2-layer MPNN
+        dataset = get_data.add_zinc_hom(name='ZINC', hom_files=count_file, idx_list=idx_list, root=data_dir, dataset=dataset, wl_count_label=True, preserve_counts_spasm=True)
+
+    elif postfix != None and "Spasm" in postfix and "WLtree" in postfix and name == 'subset':
+        count_files = ['zinc_with_homs_c7.json', 'zinc_with_homs_c8.json']
+        idx_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 , 11, 15, 20, 21, 22, 24, 25, 27, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]
+        sub_file = 'zinc_3to8C_multhom.json'
+        dataset = get_data.add_zinc_subhom(name='ZINC', hom_files=count_files, idx_list=idx_list, sub_file=sub_file, root=data_dir, dataset=dataset, spasm_count_label=True)
+        count_file = "with_homs_wl44.json"
+        idx_list = [] #assuming I don't need to omit any of the counts included in Mattihas' file
+        dataset = get_data.add_zinc_hom(name='ZINC', hom_files=count_file, idx_list=idx_list, root=data_dir, dataset=dataset, wl_count_label=True, preserve_counts_spasm=True)
+
+    elif postfix != None and "AncSpasm" in postfix and name == 'subset': #FLAGanc
+        count_files = ['zinc_with_anchored_homs_c78_no1wl.json']
+        idx_list = []
+        sub_file = 'zinc_3to10C_subgraph.json'
+        dataset = get_data.add_zinc_subhom(name='ZINC', hom_files=count_files, idx_list=idx_list, sub_file=sub_file, root=data_dir, dataset=dataset)
+
+    elif postfix != None and "Spasm" in postfix and name == 'subset':
+        count_files = ['zinc_with_homs_c7.json', 'zinc_with_homs_c8.json']
+        idx_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 , 11, 15, 20, 21, 22, 24, 25, 27, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]
+        sub_file = 'zinc_3to8C_multhom.json'
+        dataset = get_data.add_zinc_subhom(name='ZINC', hom_files=count_files, idx_list=idx_list, sub_file=sub_file, root=data_dir, dataset=dataset)
+    
+    elif postfix != None and "WLtree_full" in postfix and name == 'subset':
+        count_file = 'with_homs_wlfull.json'
+        idx_list = [] #assuming I don't need to omit any of the counts included in Mattihas' file
+        dataset = get_data.add_zinc_hom(name='ZINC', hom_files=count_file, idx_list=idx_list, root=data_dir, dataset=dataset)
+
+    elif postfix != None and "2WLtree" in postfix and name == 'subset': #FLAG2
+        count_file = 'with_homs_wlfull.json'
+        idx_list = [0,1,2,4,7] #for simulating 2-layer MPNN
+        dataset = get_data.add_zinc_hom(name='ZINC', hom_files=count_file, idx_list=idx_list, root=data_dir, dataset=dataset)
+
+    elif postfix != None and "WLtree" in postfix and name == "subset":
+        count_file = "with_homs_wl44.json"
+        idx_list = [] #assuming I don't need to omit any of the counts included in Mattihas' file
+        dataset = get_data.add_zinc_hom(name='ZINC', hom_files=count_file, idx_list=idx_list, root=data_dir, dataset=dataset)
+
     return dataset
 
 def preformat_Counting(dataset_dir, name):
