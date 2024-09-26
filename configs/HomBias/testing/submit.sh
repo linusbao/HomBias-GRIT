@@ -16,7 +16,7 @@ for c in "${cfgs[@]}"; do
 #SBATCH --error=/slurm-storage/linbao/thesis_code_1/outputs/%x_%j.err    # standard error
 
 echo "$c"
-srun -u /slurm-storage/linbao/.conda/envs/GPS-envV2/bin/python "/slurm-storage/linbao/thesis_code_1/GraphGPS/main.py" --cfg "$c" --repeat 1 wandb.use True
+srun -u /slurm-storage/linbao/.conda/envs/GPS-envV5/bin/python "/slurm-storage/linbao/thesis_code_1/GRIT/main.py" --cfg "$c" --repeat 1 wandb.use True
 EOT
     sleep 1s 
     sbatch temp_submit.job
