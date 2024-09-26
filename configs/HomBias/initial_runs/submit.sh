@@ -1,5 +1,10 @@
-cfgs=( # for basic baseline
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/og.yaml"
+# cfgs=( # for basic baseline
+# "/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/og.yaml"
+# )
+
+cfgs=( # for hom and RW+hom
+"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/hom.yaml"
+"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/rw+hom.yaml"
 )
 
 for c in "${cfgs[@]}"; do
