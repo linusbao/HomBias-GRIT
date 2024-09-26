@@ -2,9 +2,13 @@
 # "/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/og.yaml"
 # )
 
-cfgs=( # for hom and RW+hom
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/hom.yaml"
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/rw+hom.yaml"
+# cfgs=( # for hom and RW+hom
+# "/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/hom.yaml"
+# "/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/rw+hom.yaml"
+# )
+
+cfgs=( # for wide RW+hom
+"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/initial_runs/rw+hom-wide.yaml"
 )
 
 for c in "${cfgs[@]}"; do
