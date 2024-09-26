@@ -10,7 +10,7 @@ wandb:
   entity: subgraph-hombasis
   tags: ['spasm']
 dataset:
-  format: PyG-ZINC-Spasm
+  format: PyG-ZINC-AncSpasm
   name: subset
   task: graph
   task_type: regression

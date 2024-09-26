@@ -16,7 +16,7 @@ dataset:
   task_type: regression
   transductive: False
   node_encoder: True
-  node_encoder_name: TypeDictNode
+  node_encoder_name: TypeDictNode+NodeCountEnc
   node_encoder_num_types: 28 # actually 21 in Zinc-12k, 28 in Zinc-full
   node_encoder_bn: False
   edge_encoder: True
@@ -29,6 +29,14 @@ posenc_RRWP:
   add_identity: True
   add_node_attr: False
   add_inverse: False
+ctenc_NodeCountEnc:
+  raw_bn: False
+  dim_ogct: 42
+  dim_hid: 42
+  dim_ct: 28
+  n_layers: 2
+  dropout: 0.0
+  norm: batch_norm
 train:
   mode: custom
   batch_size: 32
