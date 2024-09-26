@@ -24,7 +24,7 @@ dataset:
   edge_encoder_num_types: 4
   edge_encoder_bn: False
 posenc_RRWP:
-  enable: False
+  enable: True
   ksteps: 21
   add_identity: True
   add_node_attr: False

@@ -148,6 +148,33 @@ def concat_node_encoders(encoder_classes, pe_enc_names):
         raise ValueError(f"Does not support concatenation of "
                          f"{len(encoder_classes)} encoder classes.")
 
+#EDITED: added a factory which adds the encoders that sum WL_full with the composed-encoder embeddings of node label and pe
+def add_WLfembed_to_encoders(encoder_classes, pe_enc_names):
+
+    class WLf_sum_encoder(torch.nn.Module):
+
+        composed_enc=None
+        WLtree_enc=None
+
+        def __init__(self, dim_emb):
+            super().__init__()
+            self.comp_enc = self.composed_enc(dim_emb)
+            self.wl_enc = self.WLtree_enc(dim_emb)
+
+        def forward(self, batch):
+            batch = self.comp_enc(batch)
+            batch = self.wl_enc(batch)
+            return batch
+
+    # get the main (composed) encoder module
+    if len(encoder_classes) == 1: #composed_encoder should just be the dataset specific (initial node label embedder) encoder
+        WLf_sum_encoder.composed_enc = encoder_classes[0]
+    else: #composed encoder should be a concatenation of dataset specific encoders along with some positional encoders
+        WLf_sum_encoder.composed_enc = concat_node_encoders(encoder_classes, pe_enc_names)
+    WLf_sum_encoder.WLtree_enc = NodeCountSum
+
+    return WLf_sum_encoder
+
 
 # Dataset-specific node encoders.
 ds_encs = {'Atom': AtomEncoder,
@@ -163,10 +190,9 @@ pe_encs = {'LapPE': LapPENodeEncoder,
            'HKdiagSE': HKdiagSENodeEncoder,
            'ElstaticSE': ElstaticSENodeEncoder,
            'SignNet': SignNetNodeEncoder,
-           'EquivStableLapPE': EquivStableLapPENodeEncoder
-           }
+           'EquivStableLapPE': EquivStableLapPENodeEncoder,}
 
-# Count Encoding node encoders. #ADDITION
+# Count Encoding node encoders.
 ct_encs = {'NodeCountEnc': MLPNodeCountEncoder,
            'GraphCountEnc': MLPGraphCountEncoder,
            'NodeCountEncX2': MLPNodeCountEncoderX2}
@@ -196,11 +222,65 @@ for ds_enc_name, ds_enc_cls in ds_encs.items():
                              ['SignNet', 'RWSE'])
     )
 
-# Concat dataset-specific and count encoders. #ADDITION
+# Concat dataset-specific and count encoders.
 for ds_enc_name, ds_enc_cls in ds_encs.items():
     for ct_enc_name, ct_enc_cls in ct_encs.items():
         register_node_encoder(
             f"{ds_enc_name}+{ct_enc_name}",
             concat_node_encoders([ds_enc_cls, ct_enc_cls],
                                  [ct_enc_name])
+        )
+
+# Combine counts with RWSE positional encodings.
+for ds_enc_name, ds_enc_cls in ds_encs.items():
+    for ct_enc_name, ct_enc_cls in ct_encs.items():
+        register_node_encoder(
+            f"{ds_enc_name}+{ct_enc_name}+RWSE",
+            concat_node_encoders([ds_enc_cls, ct_enc_cls, RWSENodeEncoder],
+                                [ct_enc_name, 'RWSE'])
+        )
+
+# WLtree sum encoders:
+
+# Sum WL with dataset-specific encoders.
+for ds_enc_name, ds_enc_cls in ds_encs.items():
+        register_node_encoder(
+            f"{ds_enc_name}+NodeCountSum",
+            add_WLfembed_to_encoders([ds_enc_cls],
+                                 [pe_enc_name])
+        )
+
+# Sum WL with dataset-specific and PE encoders.
+for ds_enc_name, ds_enc_cls in ds_encs.items():
+    for pe_enc_name, pe_enc_cls in pe_encs.items():
+        register_node_encoder(
+            f"{ds_enc_name}+{pe_enc_name}+NodeCountSum",
+            add_WLfembed_to_encoders([ds_enc_cls, pe_enc_cls],
+                                 [pe_enc_name])
+        )
+
+# Sum WL with (ds encoder and) both LapPE and RWSE positional encodings.
+for ds_enc_name, ds_enc_cls in ds_encs.items():
+    register_node_encoder(
+        f"{ds_enc_name}+LapPE+RWSE+NodeCountSum",
+        add_WLfembed_to_encoders([ds_enc_cls, LapPENodeEncoder, RWSENodeEncoder],
+                             ['LapPE', 'RWSE'])
+    )
+
+# Sum WL with dataset-specific and count encoders.
+for ds_enc_name, ds_enc_cls in ds_encs.items():
+    for ct_enc_name, ct_enc_cls in ct_encs.items():
+        register_node_encoder(
+            f"{ds_enc_name}+{ct_enc_name}+NodeCountSum",
+            add_WLfembed_to_encoders([ds_enc_cls, ct_enc_cls],
+                                 [ct_enc_name])
+        )
+
+# Sum WL with (ds and) counts with RWSE positional encodings.
+for ds_enc_name, ds_enc_cls in ds_encs.items():
+    for ct_enc_name, ct_enc_cls in ct_encs.items():
+        register_node_encoder(
+            f"{ds_enc_name}+{ct_enc_name}+RWSE+NodeCountSum",
+            add_WLfembed_to_encoders([ds_enc_cls, ct_enc_cls, RWSENodeEncoder],
+                                [ct_enc_name, 'RWSE'])
         )
