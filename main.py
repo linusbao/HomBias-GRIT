@@ -27,6 +27,10 @@ from grit.finetuning import load_pretrained_model_cfg, \
     init_model_from_pretrained
 from grit.logger import create_logger
 
+#EDITTED added for fixing large parallel jobs
+import os.path as osp
+from torch_geometric.io import fs
+import random
 
 def new_optimizer_config(cfg):
     return OptimizerConfig(optimizer=cfg.optim.optimizer,
@@ -65,6 +69,22 @@ def custom_set_out_dir(cfg, cfg_fname, name_tag):
     cfg.out_dir = os.path.join(cfg.out_dir, run_name)
 
 
+def makedirs_randID_exist(dir): #EDITTED added this modified version of the pyg.graphgym.config function: append a random tag on the dir so we never have to remove (rm) it
+    dir_wID = None
+    if osp.isdir(dir):
+        rand_int = random.randint(0, 100000)
+        dir_wID = dir + "_randID" + str(rand_int)
+        trys = [dir_wID]
+        while osp.isdir(dir_wID):
+            rand_int = random.randint(0, 100000)
+            dir_wID = dir + "_randID" + str(rand_int)
+            trys.append(dir_wID)
+            if len(trys) == 100:
+                raise Exception(f'No avalible random IDs. Tried the followings IDs: {trys}')
+    if dir_wID != None:
+        dir = dir_wID
+    print(f'Dir (from makedirs_randID_exist) is: {dir}')#debug
+    os.makedirs(dir, exist_ok=True)
 def custom_set_run_dir(cfg, run_id):
     """Custom output directory naming for each experiment run.
 
@@ -77,7 +97,8 @@ def custom_set_run_dir(cfg, run_id):
     if cfg.train.auto_resume:
         os.makedirs(cfg.run_dir, exist_ok=True)
     else:
-        makedirs_rm_exist(cfg.run_dir)
+        #makedirs_rm_exist(cfg.run_dir)
+        makedirs_randID_exist(cfg.run_dir)#EDITTED to fix large parallel runs (OG code one line above)
 
 
 def run_loop_settings():
