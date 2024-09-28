@@ -110,8 +110,8 @@ for batch in loader:
 print(f'Batch: {batch}')
 
 #for viewing counts
-print(f'batch.counts: {batch.counts}')
-print(f'batch.counts.size(): {batch.counts.size()}')
+# print(f'batch.counts: {batch.counts}')
+# print(f'batch.counts.size(): {batch.counts.size()}')
 
 setattr(cfg, "accelerator", "cpu")
 model = create_model()

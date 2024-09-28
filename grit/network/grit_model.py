@@ -64,16 +64,29 @@ class GritTransformer(torch.nn.Module):
         self.ablation = True
         self.ablation = False
 
+        
+        self.use_rw_rel = False #False be default (in case RRWP isn't turned on at all) #EDIT
+        self.use_rw_node = False #EDIT
         if cfg.posenc_RRWP.enable:
-            self.rrwp_abs_encoder = register.node_encoder_dict["rrwp_linear"]\
-                (cfg.posenc_RRWP.ksteps, cfg.gnn.dim_inner)
-            rel_pe_dim = cfg.posenc_RRWP.ksteps
-            self.rrwp_rel_encoder = register.edge_encoder_dict["rrwp_linear"] \
-                (rel_pe_dim, cfg.gnn.dim_edge,
-                 pad_to_full_graph=cfg.gt.attn.full_attn,
-                 add_node_attr_as_self_loop=False,
-                 fill_value=0.
-                 )
+            self.use_rw_rel = not hasattr(cfg.posenc_RRWP, "use_rel_enc") or cfg.posenc_RRWP.use_rel_enc #only turn off relative rw if cfg has the attr and it's explicitly set to false #EDIT
+            self.use_rw_node = not hasattr(cfg.posenc_RRWP, "use_node_enc") or cfg.posenc_RRWP.use_node_enc #EDIT
+            if self.use_rw_node:
+                print('XXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                print(f'USING RW NODE ENCODER')
+                print('XXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                self.rrwp_abs_encoder = register.node_encoder_dict["rrwp_linear"]\
+                    (cfg.posenc_RRWP.ksteps, cfg.gnn.dim_inner)
+            if self.use_rw_rel: #EDIT
+                print('XXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                print(f'USING RW RELATIVE ENCODER')
+                print('XXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                rel_pe_dim = cfg.posenc_RRWP.ksteps
+                self.rrwp_rel_encoder = register.edge_encoder_dict["rrwp_linear"] \
+                    (rel_pe_dim, cfg.gnn.dim_edge,
+                    pad_to_full_graph=cfg.gt.attn.full_attn,
+                    add_node_attr_as_self_loop=False,
+                    fill_value=0.
+                    )
 
 
         if cfg.gnn.layers_pre_mp > 0:
@@ -104,6 +117,7 @@ class GritTransformer(torch.nn.Module):
                 norm_e=cfg.gt.attn.norm_e,
                 O_e=cfg.gt.attn.O_e,
                 cfg=cfg.gt,
+                use_rw_rel=self.use_rw_rel#EDIT
             ))
         # layers = []
 
