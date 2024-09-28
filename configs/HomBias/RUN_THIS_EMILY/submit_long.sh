@@ -1,35 +1,32 @@
 cfgs=( # for next three repeats of wide model with Spasm alone
-"/slurm-storage/linbao/thesis_code_1/GRIT/configs/HomBias/RUN_THIS_EMILY/hom-wide.yaml"
+"ex.yaml"
 )
 
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-#  CHANGE THE CFG ABOVE TO UR PATH TO THE "/RUN_THIS_EMILY/hom-wide.yaml" FILE
+#  CHANGE THE CFGs ABOVE TO UR PATH TO THE "/RUN_THIS_EMILY/config.yaml" FILES
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-seeds=(14 48 96)
-
 for c in "${cfgs[@]}"; do
-    for s in "${seeds[@]}"; do
-        cat <<EOT > temp_submit.job
+    cat <<EOT > temp_submit.job
 #!/bin/bash
 #SBATCH -N 1      # nodes requested
 #SBATCH --time=23:59:59
 #SBATCH --gres=gpu:1
-#SBATCH --qos=medium
+#SBATCH --qos=long
 #SBATCH --output=/slurm-storage/linbao/thesis_code_1/outputs/%x_%j.out   # standard output
 #SBATCH --error=/slurm-storage/linbao/thesis_code_1/outputs/%x_%j.err    # standard error
 
 echo "$c"
-srun -u /slurm-storage/linbao/.conda/envs/GPS-envV5/bin/python "/slurm-storage/linbao/thesis_code_1/GRIT/main.py" --cfg "$c" --repeat 1 wandb.use True seed $s
+srun -u /slurm-storage/miniconda3/envs/HomGRIT/bin/python "/slurm-storage/linbao/thesis_code_1/GRIT/main.py" --cfg "$c" --repeat 1 wandb.use True
 EOT
 
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-#  CHANGE THE "srun -u python main.py" LINE ABOVE TO WHATEVER UR VENV PYTHON AND GRIT/MAIN.PY PATHS ARE
+#  CHANGE "/slurm-storage/linbao/thesis_code_1/GRIT/main.py" ABOVE TO YOUR "/GRIT/main.py" ABSOLUTE PATH
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-        sleep 1s 
-        sbatch temp_submit.job
-        #cat temp_submit.job
-    done
+    sleep 1s 
+    sbatch temp_submit.job
+    #cat temp_submit.job
+
 done
 
